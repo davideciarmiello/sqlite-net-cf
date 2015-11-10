@@ -67,24 +67,6 @@ using Sqlite3Statement = System.IntPtr;
 
 namespace SQLite
 {
-#if WindowsCE || PocketPC
-    /// <summary>
-    /// http://stackoverflow.com/a/2675481/185510
-    /// </summary>
-    class DateTimeOffset
-    {
-        public DateTime UTCTime { get; set; }
-        public int BiasInMinutes { get; set; }
-
-        public DateTime AsLocalTime()
-        {
-            var localBias = (DateTime.Now - DateTime.UtcNow).TotalMinutes;
-
-            return UTCTime.AddMinutes(BiasInMinutes - localBias);
-        }
-    }
-#endif
-
 	public class SQLiteException : Exception
 	{
 		public SQLite3.Result Result { get; private set; }
