@@ -1239,7 +1239,7 @@ namespace SQLite
 
 		public int InsertAll (System.Collections.IEnumerable objects, string extra)
 		{
-			return InsertAll(objects, true, true);
+			return InsertAll(objects, extra, true);
 		}
 
 		/// <summary>
