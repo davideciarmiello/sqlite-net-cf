@@ -1105,7 +1105,7 @@ namespace SQLite
 					if (0 <= depth && depth < _transactionDepth) {
 #if NETFX_CORE || USE_SQLITEPCL_RAW
                         Volatile.Write (ref _transactionDepth, depth);
-#elif SILVERLIGHT
+#elif SILVERLIGHT || NO_CONCURRENT
 						_transactionDepth = depth;
 #else
                         Thread.VolatileWrite (ref _transactionDepth, depth);
