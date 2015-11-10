@@ -27,6 +27,7 @@
 #define USE_NEW_REFLECTION_API
 #endif
 
+
 using System;
 using System.Diagnostics;
 #if !USE_SQLITEPCL_RAW
@@ -177,8 +178,13 @@ namespace SQLite
 		/// If you use DateTimeOffset properties, it will be always stored as ticks regardingless
 		/// the storeDateTimeAsTicks parameter.
 		/// </param>
-		public SQLiteConnection (string databasePath, bool storeDateTimeAsTicks = true)
+		public SQLiteConnection (string databasePath, bool storeDateTimeAsTicks)
 			: this (databasePath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create, storeDateTimeAsTicks)
+		{
+		}
+
+		public SQLiteConnection (string databasePath)
+			: this (databasePath, true)
 		{
 		}
 
@@ -196,7 +202,7 @@ namespace SQLite
 		/// If you use DateTimeOffset properties, it will be always stored as ticks regardingless
 		/// the storeDateTimeAsTicks parameter.
 		/// </param>
-		public SQLiteConnection (string databasePath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks = true)
+		public SQLiteConnection (string databasePath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks)
 		{
 			if (string.IsNullOrEmpty (databasePath))
 				throw new ArgumentException ("Must be specified", "databasePath");
@@ -228,6 +234,11 @@ namespace SQLite
 			StoreDateTimeAsTicks = storeDateTimeAsTicks;
 			
 			BusyTimeout = TimeSpan.FromSeconds (0.1);
+		}
+
+		public SQLiteConnection (string databasePath, SQLiteOpenFlags openFlags)
+			: this (databasePath, openFlags, true)
+		{
 		}
 		
 #if __IOS__
@@ -304,7 +315,7 @@ namespace SQLite
 		/// The mapping represents the schema of the columns of the database and contains 
 		/// methods to set and get properties of objects.
 		/// </returns>
-        public TableMapping GetMapping(Type type, CreateFlags createFlags = CreateFlags.None)
+        public TableMapping GetMapping(Type type, CreateFlags createFlags)
 		{
 			if (_mappings == null) {
 				_mappings = new Dictionary<string, TableMapping> ();
@@ -315,6 +326,11 @@ namespace SQLite
 				_mappings [type.FullName] = map;
 			}
 			return map;
+		}
+
+        public TableMapping GetMapping(Type type)
+		{
+			return GetMapping(type, CreateFlags.None);
 		}
 		
 		/// <summary>
@@ -364,9 +380,14 @@ namespace SQLite
 		/// <returns>
 		/// The number of entries added to the database schema.
 		/// </returns>
-		public int CreateTable<T>(CreateFlags createFlags = CreateFlags.None)
+		public int CreateTable<T>(CreateFlags createFlags)
 		{
 			return CreateTable(typeof (T), createFlags);
+		}
+
+		public int CreateTable<T>()
+		{
+            return CreateTable<T>(CreateFlags.None);
 		}
 
 		/// <summary>
@@ -380,7 +401,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of entries added to the database schema.
 		/// </returns>
-        public int CreateTable(Type ty, CreateFlags createFlags = CreateFlags.None)
+        public int CreateTable(Type ty, CreateFlags createFlags)
 		{
 			if (_tables == null) {
 				_tables = new Dictionary<string, TableMapping> ();
@@ -446,6 +467,12 @@ namespace SQLite
 			return count;
 		}
 
+
+        public int CreateTable(Type ty)
+		{
+			return CreateTable(ty, CreateFlags.None);
+		}
+
         /// <summary>
         /// Creates an index for the specified table and columns.
         /// </summary>
@@ -453,11 +480,16 @@ namespace SQLite
         /// <param name="tableName">Name of the database table</param>
         /// <param name="columnNames">An array of column names to index</param>
         /// <param name="unique">Whether the index should be unique</param>
-        public int CreateIndex(string indexName, string tableName, string[] columnNames, bool unique = false)
+        public int CreateIndex(string indexName, string tableName, string[] columnNames, bool unique)
         {
             const string sqlFormat = "create {2} index if not exists \"{3}\" on \"{0}\"(\"{1}\")";
             var sql = String.Format(sqlFormat, tableName, string.Join ("\", \"", columnNames), unique ? "unique" : "", indexName);
             return Execute(sql);
+        }
+
+        public int CreateIndex(string indexName, string tableName, string[] columnNames)
+        {
+            return CreateIndex(indexName, tableName, columnNames, false);
         }
 
         /// <summary>
@@ -467,9 +499,14 @@ namespace SQLite
         /// <param name="tableName">Name of the database table</param>
         /// <param name="columnName">Name of the column to index</param>
         /// <param name="unique">Whether the index should be unique</param>
-        public int CreateIndex(string indexName, string tableName, string columnName, bool unique = false)
+        public int CreateIndex(string indexName, string tableName, string columnName, bool unique)
         {
             return CreateIndex(indexName, tableName, new string[] { columnName }, unique);
+        }
+
+        public int CreateIndex(string indexName, string tableName, string columnName)
+        {
+            return CreateIndex(indexName, tableName, columnName, false);
         }
         
         /// <summary>
@@ -478,9 +515,14 @@ namespace SQLite
         /// <param name="tableName">Name of the database table</param>
         /// <param name="columnName">Name of the column to index</param>
         /// <param name="unique">Whether the index should be unique</param>
-        public int CreateIndex(string tableName, string columnName, bool unique = false)
+        public int CreateIndex(string tableName, string columnName, bool unique)
         {
             return CreateIndex(tableName + "_" + columnName, tableName, columnName, unique);
+        }
+
+        public int CreateIndex(string tableName, string columnName)
+        {
+            return CreateIndex(tableName, columnName, false);
         }
 
         /// <summary>
@@ -489,9 +531,14 @@ namespace SQLite
         /// <param name="tableName">Name of the database table</param>
         /// <param name="columnNames">An array of column names to index</param>
         /// <param name="unique">Whether the index should be unique</param>
-        public int CreateIndex(string tableName, string[] columnNames, bool unique = false)
+        public int CreateIndex(string tableName, string[] columnNames, bool unique)
         {
             return CreateIndex(tableName + "_" + string.Join ("_", columnNames), tableName, columnNames, unique);
+        }
+
+        public int CreateIndex(string tableName, string[] columnNames)
+        {
+            return CreateIndex(tableName, columnNames, false);
         }
 
         /// <summary>
@@ -501,7 +548,7 @@ namespace SQLite
         /// <typeparam name="T">Type to reflect to a database table.</typeparam>
         /// <param name="property">Property to index</param>
         /// <param name="unique">Whether the index should be unique</param>
-        public void CreateIndex<T>(Expression<Func<T, object>> property, bool unique = false)
+        public void CreateIndex<T>(Expression<Func<T, object>> property, bool unique)
         {
             MemberExpression mx;
             if (property.Body.NodeType == ExpressionType.Convert)
@@ -524,6 +571,11 @@ namespace SQLite
             var colName = map.FindColumnWithPropertyName(propName).Name;
 
             CreateIndex(map.TableName, colName, unique);
+        }
+
+        public void CreateIndex<T>(Expression<Func<T, object>> property)
+        {
+            CreateIndex<T>(property, false);
         }
 
 		public class ColumnInfo
@@ -1058,7 +1110,7 @@ namespace SQLite
                         Execute (cmd + savepoint);
 						return;
 					}
-				}
+                }
 			}
 
 			throw new ArgumentException ("savePoint is not valid, and should be the result of a call to SaveTransactionPoint.", "savePoint");
@@ -1108,7 +1160,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects, bool runInTransaction=true)
+		public int InsertAll (System.Collections.IEnumerable objects, bool runInTransaction)
 		{
 			var c = 0;
 			if (runInTransaction) {
@@ -1126,6 +1178,11 @@ namespace SQLite
 			return c;
 		}
 
+		public int InsertAll (System.Collections.IEnumerable objects)
+		{
+			return InsertAll(objects, true);
+		}
+
 		/// <summary>
 		/// Inserts all specified objects.
 		/// </summary>
@@ -1141,7 +1198,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects, string extra, bool runInTransaction=true)
+		public int InsertAll (System.Collections.IEnumerable objects, string extra, bool runInTransaction)
 		{
 			var c = 0;
 			if (runInTransaction) {
@@ -1159,6 +1216,11 @@ namespace SQLite
 			return c;
 		}
 
+		public int InsertAll (System.Collections.IEnumerable objects, string extra)
+		{
+			return InsertAll(objects, true, true);
+		}
+
 		/// <summary>
 		/// Inserts all specified objects.
 		/// </summary>
@@ -1174,7 +1236,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows added to the table.
 		/// </returns>
-		public int InsertAll (System.Collections.IEnumerable objects, Type objType, bool runInTransaction=true)
+		public int InsertAll (System.Collections.IEnumerable objects, Type objType, bool runInTransaction)
 		{
 			var c = 0;
 			if (runInTransaction) {
@@ -1190,6 +1252,11 @@ namespace SQLite
 				}
 			}
 			return c;
+		}
+
+		public int InsertAll (System.Collections.IEnumerable objects, Type objType)
+		{
+            return InsertAll(objects, objType, true);
 		}
 		
 		/// <summary>
@@ -1471,7 +1538,7 @@ namespace SQLite
 		/// <returns>
 		/// The number of rows modified.
 		/// </returns>
-		public int UpdateAll (System.Collections.IEnumerable objects, bool runInTransaction=true)
+		public int UpdateAll (System.Collections.IEnumerable objects, bool runInTransaction)
 		{
 			var c = 0;
 			if (runInTransaction) {
@@ -1487,6 +1554,11 @@ namespace SQLite
 				}
 			}
 			return c;
+		}
+
+		public int UpdateAll (System.Collections.IEnumerable objects)
+		{
+			return UpdateAll(objects, true);
 		}
 
 		/// <summary>
@@ -1759,7 +1831,7 @@ namespace SQLite
 		Column[] _insertColumns;
 		Column[] _insertOrReplaceColumns;
 
-        public TableMapping(Type type, CreateFlags createFlags = CreateFlags.None)
+        public TableMapping(Type type, CreateFlags createFlags)
 		{
 			MappedType = type;
 
@@ -1810,6 +1882,11 @@ namespace SQLite
 				GetByPrimaryKeySql = string.Format ("select * from \"{0}\" limit 1", TableName);
 			}
 			_insertCommandMap = new ConcurrentStringDictionary ();
+		}
+
+        public TableMapping(Type type)
+            : this(type, CreateFlags.None)
+		{
 		}
 
 		public bool HasAutoIncPK { get; private set; }
@@ -1929,7 +2006,7 @@ namespace SQLite
 
 			public int? MaxStringLength { get; private set; }
 
-            public Column(PropertyInfo prop, CreateFlags createFlags = CreateFlags.None)
+            public Column(PropertyInfo prop, CreateFlags createFlags)
             {
                 var colAttr = (ColumnAttribute)prop.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault();
 
@@ -1958,6 +2035,11 @@ namespace SQLite
                 }
                 IsNullable = !(IsPK || Orm.IsMarkedNotNull(prop));
                 MaxStringLength = Orm.MaxStringLength(prop);
+            }
+
+            public Column(PropertyInfo prop)
+                : this (prop, CreateFlags.None)
+            {
             }
 
 			public void SetValue (object obj, object val)
