@@ -27,6 +27,9 @@
 #define USE_NEW_REFLECTION_API
 #endif
 
+#if WindowsCE || PocketPC
+#define NO_CONCURRENT
+#endif
 
 using System;
 using System.Diagnostics;
