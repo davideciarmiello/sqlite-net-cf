@@ -3215,7 +3215,7 @@ namespace SQLite
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_prepare_v2", CallingConvention=CallingConvention.Winapi)]
 		public static extern Result Prepare2 (IntPtr db, [MarshalAs(UnmanagedType.LPStr)] string sql, int numBytes, out IntPtr stmt, IntPtr pzTail);
 
-#if NETFX_CORE
+#if NETFX_CORE || PocketPC
 		[DllImport (LibraryPath, EntryPoint = "sqlite3_prepare_v2", CallingConvention = CallingConvention.Winapi)]
 		public static extern Result Prepare2 (IntPtr db, byte[] queryBytes, int numBytes, out IntPtr stmt, IntPtr pzTail);
 #endif
@@ -3223,7 +3223,7 @@ namespace SQLite
 		public static IntPtr Prepare2 (IntPtr db, string query)
 		{
 			IntPtr stmt;
-#if NETFX_CORE
+#if NETFX_CORE || PocketPC
             byte[] queryBytes = System.Text.UTF8Encoding.UTF8.GetBytes (query);
             var r = Prepare2 (db, queryBytes, queryBytes.Length, out stmt, IntPtr.Zero);
 #else
@@ -3244,8 +3244,20 @@ namespace SQLite
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_finalize", CallingConvention=CallingConvention.Winapi)]
 		public static extern Result Finalize (IntPtr stmt);
 
+#if PocketPC
+        [DllImport("sqlite3", EntryPoint = "sqlite3_last_insert_rowid_interop", CallingConvention = CallingConvention.Winapi)]
+        private static extern void LastInsertRowid(IntPtr db, out long id);
+
+        public static long LastInsertRowid(IntPtr db)
+        {
+            long id;
+            LastInsertRowid(db, out id);
+            return id;
+        }
+#else
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_last_insert_rowid", CallingConvention=CallingConvention.Winapi)]
 		public static extern long LastInsertRowid (IntPtr db);
+#endif
 
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_errmsg16", CallingConvention=CallingConvention.Winapi)]
 		public static extern IntPtr Errmsg (IntPtr db);
@@ -3298,8 +3310,20 @@ namespace SQLite
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_int64", CallingConvention=CallingConvention.Winapi)]
 		public static extern long ColumnInt64 (IntPtr stmt, int index);
 
+#if PocketPC
+        [DllImport("sqlite3", EntryPoint = "sqlite3_column_double_interop")]
+        private static extern void ColumnDouble(IntPtr stmt, int index, out double value);
+
+        public static double ColumnDouble(IntPtr stmt, int index)
+        {
+            double value;
+            ColumnDouble(stmt, index, out value);
+            return value;
+        }
+#else
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_double", CallingConvention=CallingConvention.Winapi)]
 		public static extern double ColumnDouble (IntPtr stmt, int index);
+#endif
 
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_text", CallingConvention=CallingConvention.Winapi)]
 		public static extern IntPtr ColumnText (IntPtr stmt, int index);
