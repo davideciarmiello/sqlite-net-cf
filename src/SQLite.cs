@@ -1100,7 +1100,7 @@ namespace SQLite
 			int firstLen = savepoint.IndexOf ('D');
 			if (firstLen >= 2 && savepoint.Length > firstLen + 1) {
 				int depth;
-				if (Int32.TryParse (savepoint.Substring (firstLen + 1), out depth)) {
+				if (ParseAssistant.TryParse (savepoint.Substring (firstLen + 1), out depth)) {
 					// TODO: Mild race here, but inescapable without locking almost everywhere.
 					if (0 <= depth && depth < _transactionDepth) {
 #if NETFX_CORE || USE_SQLITEPCL_RAW
