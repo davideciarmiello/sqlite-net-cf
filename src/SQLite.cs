@@ -3245,7 +3245,7 @@ namespace SQLite
 		public static extern Result Finalize (IntPtr stmt);
 
 #if PocketPC
-        [DllImport("sqlite3", EntryPoint = "sqlite3_last_insert_rowid_interop", CallingConvention = CallingConvention.Winapi)]
+        [DllImport(LibraryPath, EntryPoint = "sqlite3_last_insert_rowid_interop", CallingConvention = CallingConvention.Winapi)]
         private static extern void LastInsertRowid(IntPtr db, out long id);
 
         public static long LastInsertRowid(IntPtr db)
@@ -3311,7 +3311,7 @@ namespace SQLite
 		public static extern long ColumnInt64 (IntPtr stmt, int index);
 
 #if PocketPC
-        [DllImport("sqlite3", EntryPoint = "sqlite3_column_double_interop")]
+        [DllImport(LibraryPath, EntryPoint = "sqlite3_column_double_interop")]
         private static extern void ColumnDouble(IntPtr stmt, int index, out double value);
 
         public static double ColumnDouble(IntPtr stmt, int index)
