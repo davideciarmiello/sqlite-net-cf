@@ -3307,10 +3307,17 @@ namespace SQLite
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_int", CallingConvention=CallingConvention.Winapi)]
 		public static extern int ColumnInt (IntPtr stmt, int index);
 
-		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_int64", CallingConvention=CallingConvention.Winapi)]
-		public static extern long ColumnInt64 (IntPtr stmt, int index);
-
 #if PocketPC
+        [DllImport(LibraryPath, EntryPoint = "sqlite3_column_int64_interop")]
+        private static extern void ColumnInt64(IntPtr stmt, int index, out long value);
+
+        public static long ColumnInt64(IntPtr stmt, int index)
+        {
+            long value;
+            ColumnInt64(stmt, index, out value);
+            return value;
+        }
+
         [DllImport(LibraryPath, EntryPoint = "sqlite3_column_double_interop")]
         private static extern void ColumnDouble(IntPtr stmt, int index, out double value);
 
@@ -3321,6 +3328,9 @@ namespace SQLite
             return value;
         }
 #else
+		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_int64", CallingConvention=CallingConvention.Winapi)]
+		public static extern long ColumnInt64 (IntPtr stmt, int index);
+
 		[DllImport(LibraryPath, EntryPoint = "sqlite3_column_double", CallingConvention=CallingConvention.Winapi)]
 		public static extern double ColumnDouble (IntPtr stmt, int index);
 #endif
