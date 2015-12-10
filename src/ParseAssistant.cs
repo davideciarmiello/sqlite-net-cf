@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SensorsMonitoringCF.Database
+namespace SQLite
 {
     /// <summary>
     /// Contains methods to assist with parsing one value into another.
