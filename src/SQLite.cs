@@ -165,6 +165,13 @@ namespace SQLite
 
 		public bool Trace { get; set; }
 
+        private Action<string> _traceWrite = (s => Debug.WriteLine(s));
+        public Action<string> TraceWriter
+        {
+            get { return _traceWrite; }
+            set { _traceWrite = value ?? (s => Debug.WriteLine(s)); }
+        }
+
 		public bool StoreDateTimeAsTicks { get; private set; }
 
 		/// <summary>
@@ -702,7 +709,7 @@ namespace SQLite
 			if (TimeExecution) {
 				_sw.Stop ();
 				_elapsedMilliseconds += _sw.ElapsedMilliseconds;
-				Debug.WriteLine (string.Format ("Finished in {0} ms ({1:0.0} s total)", _sw.ElapsedMilliseconds, _elapsedMilliseconds / 1000.0));
+                TraceWriter(string.Format("Finished in {0} ms ({1:0.0} s total)", _sw.ElapsedMilliseconds, _elapsedMilliseconds / 1000.0));
 			}
 			
 			return r;
@@ -725,7 +732,7 @@ namespace SQLite
 			if (TimeExecution) {
 				_sw.Stop ();
 				_elapsedMilliseconds += _sw.ElapsedMilliseconds;
-				Debug.WriteLine (string.Format ("Finished in {0} ms ({1:0.0} s total)", _sw.ElapsedMilliseconds, _elapsedMilliseconds / 1000.0));
+                TraceWriter(string.Format("Finished in {0} ms ({1:0.0} s total)", _sw.ElapsedMilliseconds, _elapsedMilliseconds / 1000.0));
 			}
 			
 			return r;
@@ -2202,7 +2209,7 @@ namespace SQLite
 		public int ExecuteNonQuery ()
 		{
 			if (_conn.Trace) {
-				Debug.WriteLine ("Executing: " + this);
+                _conn.TraceWriter("Executing: " + this);
 			}
 			
 			var r = SQLite3.Result.OK;
@@ -2260,7 +2267,7 @@ namespace SQLite
 		public IEnumerable<T> ExecuteDeferredQuery<T> (TableMapping map)
 		{
 			if (_conn.Trace) {
-				Debug.WriteLine ("Executing Query: " + this);
+                _conn.TraceWriter("Executing Query: " + this);
 			}
 
 			var stmt = Prepare ();
@@ -2295,7 +2302,7 @@ namespace SQLite
 		public T ExecuteScalar<T> ()
 		{
 			if (_conn.Trace) {
-				Debug.WriteLine ("Executing Query: " + this);
+                _conn.TraceWriter("Executing Query: " + this);
 			}
 			
 			T val = default(T);
@@ -2511,7 +2518,7 @@ namespace SQLite
 		public int ExecuteNonQuery (object[] source)
 		{
 			if (Connection.Trace) {
-				Debug.WriteLine ("Executing: " + CommandText);
+                Connection.TraceWriter("Executing: " + CommandText);
 			}
 
 			var r = SQLite3.Result.OK;
